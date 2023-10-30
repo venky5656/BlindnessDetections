@@ -1,0 +1,33 @@
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+
+# Load a pre-trained MobileNetV2 model without the top classification layer
+base_model = keras.applications.MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+
+# Add a custom classification layer for binary classification
+model = keras.Sequential([
+    base_model,
+    keras.layers.GlobalAveragePooling2D(),
+    keras.layers.Dense(1, activation='sigmoid')
+])
+
+# Load the trained weights for your blindness detection model
+model.load_weights('blindness_detection_model_weights.h5')
+
+# Define a function to classify an input retinal image
+def classify_blindness(image_path):
+    img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))
+    img = tf.keras.preprocessing.image.img_to_array(img)
+    img = np.expand_dims(img, axis=0)
+    img = keras.applications.mobilenet_v2.preprocess_input(img)
+
+    prediction = model.predict(img)
+
+    if prediction < 0.5:
+        print("Not blind")
+    else:
+        print("Blind")
+
+# Replace 'your_image.jpg' with the path to the retinal image you want to classify
+classify_blindness('your_image.jpg')
